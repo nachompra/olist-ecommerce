@@ -62,7 +62,7 @@ function Dashboard({ data }) {
 
       {tab === "ventas"
         ? <TabVentas data={data} f={f} set={set} idx={idx} idxGlobal={idxGlobal} pal={pal} dark={dark} />
-        : <TabLogistica data={data} set={set} idx={idx} idxGlobal={idxGlobal} pal={pal} />}
+        : <TabLogistica data={data} f={f} set={set} idx={idx} idxGlobal={idxGlobal} pal={pal} />}
 
       <footer className="pie">
         Fuente: Brazilian E-Commerce Public Dataset by Olist (Kaggle). Importes en reales brasileños (R$), precio + envío;
@@ -237,12 +237,19 @@ function TabVentas({ data, f, set, idx, idxGlobal, pal, dark }) {
 }
 
 // ---------------------------------------------------------------------------------------------
-function TabLogistica({ data, set, idx, idxGlobal, pal }) {
+function TabLogistica({ data, f, set, idx, idxGlobal, pal }) {
   const k = useMemo(() => kpisLogistica(data, idx), [data, idx]);
   const g = useMemo(() => kpisLogistica(data, idxGlobal), [data, idxGlobal]);
   const fun = useMemo(() => embudo(data, idx), [data, idx]);
   const val = useMemo(() => valoracionPorRetraso(data, idx), [data, idx]);
   const estados = useMemo(() => porEstado(data, idx), [data, idx]);
+  const [orden, setOrden] = useState({ col: "pctATiempo", asc: true });
+  const filasOrdenadas = ordenar(estados, orden);
+  const [exportando, setExportando] = useState(false);
+  const descargar = async () => {
+    setExportando(true);
+    try { await descargarExcel(data, f, filasOrdenadas); } finally { setExportando(false); }
+  };
   const dias = (v) => `${fmt.dec(v)} días`;
 
   return (
@@ -292,8 +299,10 @@ function TabLogistica({ data, set, idx, idxGlobal, pal }) {
         </Card>
       </div>
 
-      <Card title="Resumen por estado" subtitle="Entregas, retrasos y valoración · clic en una fila para filtrar" className="mt">
-        <TablaEstados filas={estados} onSelect={(uf) => set({ estado: uf })} />
+      <Card title="Resumen por estado" subtitle="Entregas, retrasos y valoración · clic en una fila para filtrar" className="mt"
+            actions={<button type="button" className="btn-sec" onClick={descargar} disabled={exportando}>
+              {exportando ? "Generando…" : "⬇ Descargar Excel"}</button>}>
+        <TablaEstados filas={filasOrdenadas} orden={orden} setOrden={setOrden} onSelect={(uf) => set({ estado: uf })} />
       </Card>
     </div>
   );
@@ -383,13 +392,37 @@ const COLUMNAS = [
   { id: "nota", label: "Nota media", fmt: fmt.dec2, num: true },
 ];
 
-function TablaEstados({ filas, onSelect }) {
-  const [orden, setOrden] = useState({ col: "pctATiempo", asc: true });
-  const datos = [...filas].sort((a, b) => {
+function ordenar(filas, orden) {
+  return [...filas].sort((a, b) => {
     const x = a[orden.col] ?? -Infinity, y = b[orden.col] ?? -Infinity;
     const c = typeof x === "string" ? x.localeCompare(y, "es") : x - y;
     return orden.asc ? c : -c;
   });
+}
+
+/** Exporta la tabla (con el orden y los filtros actuales) a .xlsx. La librería se carga solo al pulsar. */
+async function descargarExcel(data, f, filas) {
+  const { default: writeExcelFile } = await import("write-excel-file/browser");
+  const cab = (value) => ({ value, fontWeight: "bold" });
+  const num = (v, format) => ({ value: v ?? null, type: Number, format });
+  const columns = [
+    { header: cab("Estado"), cell: (r) => ({ value: r.nombre }), width: 22 },
+    { header: cab("UF"), cell: (r) => ({ value: r.uf }), width: 6 },
+    { header: cab("Pedidos"), cell: (r) => num(r.pedidos, "#,##0"), width: 10 },
+    { header: cab("Entregados"), cell: (r) => num(r.ent, "#,##0"), width: 11 },
+    { header: cab("A tiempo (%)"), cell: (r) => num(r.pctATiempo, "0.0%"), width: 13 },
+    { header: cab("Plazo medio (días)"), cell: (r) => num(r.plazo, "0.0"), width: 18 },
+    { header: cab("Pedidos con retraso"), cell: (r) => num(r.tarde, "#,##0"), width: 19 },
+    { header: cab("Retraso medio tardíos (días)"), cell: (r) => num(r.retraso, "0.0"), width: 27 },
+    { header: cab("Nota media"), cell: (r) => num(r.nota, "0.00"), width: 11 },
+  ];
+  const zona = f.estado || (f.region ? f.region.replace(/[^\p{L}\p{N}]+/gu, "-") : "Brasil");
+  const cat = f.cat !== "" ? `_${data.categorias[f.cat].replace(/[^\p{L}\p{N}]+/gu, "-")}` : "";
+  const nombre = `olist-logistica-por-estado_${zona}${cat}_${data.meses[f.from]}_${data.meses[f.to]}.xlsx`;
+  await writeExcelFile(filas, { columns, sheet: "Resumen por estado", stickyRowsCount: 1 }).toFile(nombre);
+}
+
+function TablaEstados({ filas: datos, orden, setOrden, onSelect }) {
   return (
     <div className="tabla-scroll">
       <table className="tabla">

@@ -20,12 +20,32 @@ uv run download.py   # descarga el dataset con kagglehub a data/raw/
 uv run prep.py       # cruza las tablas y genera public/data/orders.json
 ```
 
-## Desarrollo y despliegue
+## Desarrollo
 
 ```powershell
 npm install
 npm run dev                  # http://localhost:5173
-docker compose up --build    # http://localhost:8080
+```
+
+## Despliegue
+
+El panel es estático (HTML + JS + `public/data/orders.json`), así que admite dos destinos:
+
+**GitHub Pages (gratuito).** Cada push a `main` ejecuta `.github/workflows/pages.yml`, que compila con
+`BASE_PATH=/<nombre-del-repo>/` y publica `dist/`. Publicado en https://nachompra.github.io/olist-ecommerce/.
+Requisito único: en *Settings → Pages* del repo, *Source* = **GitHub Actions**.
+
+**Docker (servidor propio).** Imagen multi-etapa: compila con Node y sirve con nginx en el puerto 80
+(publicado como 8080).
+
+```powershell
+docker compose up -d --build    # http://localhost:8080
 ```
 
 El mapa base (Esri Light/Dark Gray Canvas) se carga desde internet en el navegador del usuario.
+
+## Licencia de los datos
+
+[Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce),
+publicado bajo licencia CC BY-NC-SA 4.0. `public/data/orders.json` es un derivado agregado de ese dataset y se
+distribuye bajo la misma licencia, con uso no comercial.

@@ -172,3 +172,4 @@ h2 { font-size: 15px; font-weight: 600; margin: 0; }
 .barra-celda i { display: block; height: 10px; border-radius: 0 4px 4px 0; }
 
 .pie { margin-top: 28px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.btn-sec:disabled { opacity: .6; cursor: progress; }
