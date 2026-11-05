@@ -1,3 +1,9 @@
 node_modules/
 dist/
 .env
+
+# Datos originales de Kaggle (se regeneran con scripts/download.py)
+data/raw/
+# Entorno Python del preprocesado
+scripts/.venv/
+__pycache__/
