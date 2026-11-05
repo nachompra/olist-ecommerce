@@ -42,6 +42,15 @@ Requisito único: en *Settings → Pages* del repo, *Source* = **GitHub Actions*
 docker compose up -d --build    # http://localhost:8080
 ```
 
+Si la red inspecciona TLS (antivirus con escaneo HTTPS o proxy corporativo), `npm ci` falla dentro del
+contenedor con `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. En ese caso hay que pasar la CA raíz como *secret*; no queda
+grabada en la imagen:
+
+```powershell
+docker build --secret id=extra_ca,src=C:uta\ca-raiz.pem -t olist-ecommerce:latest .
+docker compose up -d
+```
+
 El mapa base (Esri Light/Dark Gray Canvas) se carga desde internet en el navegador del usuario.
 
 ## Licencia de los datos

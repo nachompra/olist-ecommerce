@@ -4,3 +4,6 @@ dist
 .env
 data
 scripts
+
+.github
+README.md

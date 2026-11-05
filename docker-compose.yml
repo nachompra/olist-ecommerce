@@ -1,6 +1,7 @@
 services:
   dashboard:
     build: .
+    image: olist-ecommerce:latest
     ports:
       - "8080:80"
     restart: unless-stopped
