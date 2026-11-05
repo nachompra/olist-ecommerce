@@ -1,0 +1,10 @@
+:root { font-family: system-ui, sans-serif; color: #1f2430; background: #f5f6f8; }
+body { margin: 0; }
+main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+h1 { margin: 0 0 20px; }
+h2 { font-size: 15px; margin: 0 0 12px; color: #555; }
+.card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.kpis span { display: block; font-size: 13px; color: #666; }
+.kpis strong { font-size: 26px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
