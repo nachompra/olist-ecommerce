@@ -47,7 +47,7 @@ contenedor con `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. En ese caso hay que pasar la C
 grabada en la imagen:
 
 ```powershell
-docker build --secret id=extra_ca,src=C:uta\ca-raiz.pem -t olist-ecommerce:latest .
+docker build --secret id=extra_ca,src=C:/ruta/ca-raiz.pem -t olist-ecommerce:latest .
 docker compose up -d
 ```
 
